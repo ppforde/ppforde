@@ -1,0 +1,137 @@
+---
+title: "starterR"
+author: "Gregg Atherley"
+date: "10/13/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(scipen = 999)
+options(repr.plot.width = 8, repr.plot.height=4)
+```
+
+## Using Vectors
+
+```{r variables}
+interest.rate = 4.7
+
+present.value = 25000
+
+term.vector = seq(from = 24, to = 72, by = 12)
+
+df <- data.frame()
+```
+
+
+```{r loop}
+while (present.value < 30000) {
+    
+    for (number.periods in term.vector) {      
+        xf <- data.frame(
+            loan = present.value,
+            term = number.periods,
+            interest = interest.rate)
+        df <- rbind(xf, df)        
+    }
+    
+    present.value = present.value + 1000
+}
+
+df
+
+```
+
+```{r function1}
+autoloan.func <- function(present.value, number.periods, interest.rate) {
+    interest.rate = interest.rate / 100 / 12
+    round(interest.rate * present.value / (1 - (1 + interest.rate) **-number.periods),2 )
+}
+```
+
+```{r mapply}
+df$monthly <- with(df, mapply(autoloan.func, loan, term, interest))
+
+df
+```
+
+```{r ifelse}
+df$status <- with(df, ifelse(monthly < 500, "low", ifelse(monthly > 600, "high", "ok")))
+
+df
+```
+
+```{r timestamp}
+df$current_date <- Sys.time()
+
+df
+```
+
+```{r summary}
+summary(df)
+```
+
+```{r colnames}
+colnames(df) <- toupper(colnames(df))
+
+colnames(df)
+```
+
+```{r write.csv}
+write.csv(df, file='loans_r.csv', row.names = F)
+```
+
+## Using Matrix
+
+```{r irate_matrix}
+irate <- matrix(4.7, nrow = 5, ncol = 5)
+
+irate
+```
+
+```{r nper_matrix}
+nper <- seq(from = 24, to = 72, by = 12)
+
+nper <- matrix(nper, nrow = 5, ncol = 5)
+
+nper
+```
+
+```{r pval_matrix}
+pval <- seq(from = 25000, to = 29000, by = 1000)
+
+pval <- matrix(pval, nrow = 5, ncol = 5)
+
+pval <- t(pval)
+pval
+```
+
+```{r function2}
+autoloan.func <- function(pval, nper, irate) {
+    irate = irate / 100 / 12
+    round(irate * pval / (1 - (1 + irate) **-nper),2 )
+}
+```
+
+```{r pmt_matrix}
+pmt <- autoloan.func(pval, nper, irate)
+
+row.names(pmt) <- nper[,1]
+
+colnames(pmt) <- pval[1,]
+
+pmt
+```
+
+```{r heatmap}
+heatmap(pmt)
+```
+
+```{r boxplot}
+boxplot(pmt, col = 'darkblue', border = 'grey', main = 'Auto Loan Payments')
+```
+
+```{r histogram}
+hist(pmt, col = 'pink', border = 'red', main = 'Auto Loan Payments')
+```
+
